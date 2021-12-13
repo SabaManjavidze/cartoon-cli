@@ -111,15 +111,8 @@ const getVideoApi= async (semi)=>{
     console.log("99%")
     try{    
         const video = await axios.post(video_url+semi[semi.length-1],{r:"",d:"animepl.xyz"})
-        // const mp4 = video.data.data.find(child=>child.label=="1080p")
         const mp4 = video.data.data[video.data.data.length-1]
         return {video:mp4.file,quality:mp4.label}
-        // if(mp4!=null)
-        // {
-        //     return mp4.file
-        // }else{
-        //     return video.data.data.find(child=>child.label=="720p").file
-        // }
     }
     catch(err){
         console.log("getVideoApi")
