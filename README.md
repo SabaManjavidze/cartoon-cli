@@ -2,7 +2,8 @@
 CLI for watching and browsing Cartoons
 
 
-| Downlaod |
+| Syntax | Description |
 | ----------- | ----------- |
-im working on it shut up baka
+| Header | Downlaod |
+| Paragraph | shut up im working on it baka |
   
