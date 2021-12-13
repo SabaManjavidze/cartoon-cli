@@ -2,7 +2,7 @@
 CLI for watching and browsing Cartoons
 
 
-#Downlaod 
+# Downlaod 
 ```
 shut up im working on it baka 
 ```  
