@@ -9,8 +9,10 @@ const rl = readline.createInterface({
 });
 const fs = require("fs")
 
-require('dotenv').config({path:"C:/Users/Saba/Cartoon_CLI/bin/.env"})
-
+const BASE_URL="https://app.opencdn.co/cartoon?id="
+const VIDEO_URL = "https://animepl.xyz/api/source/"
+const SHOW_URL="https://kisscartoon.city/?s="
+const EPISODE_URL="https://kisscartoon.city/movie/"
 const my_colors = [
     '\x1b[31m%s\x1b[0m',
     '\x1b[32m%s\x1b[0m',
@@ -20,8 +22,6 @@ const my_colors = [
     '\x1b[36m%s\x1b[0m'
 ]
 
-const url = process.env.SEARCH_URL
-const video_url = process.env.VIDEO_URL
 var MaxEpisodes = 0;
 var Slug = ""
 var Path = ""
@@ -51,7 +51,7 @@ const displayOptions = (arr)=>{
 }
 var col_i = 0
 const getSlug = async (slug)=>{
-    const arr = await getOptions(`${process.env.SHOW_URL}${slug}&x=0&y=0`)
+    const arr = await getOptions(`${SHOW_URL}${slug}&x=0&y=0`)
     arr.map((child,i)=>{
         if(col_i>my_colors.length-1){
             col_i=0
@@ -71,7 +71,7 @@ const getOptions = async (url) =>{
         console.log("Getting Results... \n")
         const res = await axios.get(url)
         const html = HTMLParser.parse(res.data)
-        const arr = html.querySelectorAll(process.env.SELECT_QUERY)
+        const arr = html.querySelectorAll(".item_movies_in_cat > div > .title_in_cat_container > a")
         const data = []
         arr.map(child=>{
             data.push({title:child.attributes["data-jtitle"],url:child.attributes.href})
@@ -85,7 +85,7 @@ const getOptions = async (url) =>{
 const getPage=async(ep)=>{
     console.log("33%")
     try{    
-        const res = await axios.get(`${process.env.EPISODE_URL}${Slug}-episode-${ep}/`)
+        const res = await axios.get(`${EPISODE_URL}${Slug}-episode-${ep}/`)
         const html = HTMLParser.parse(res.data)
         return html
     }
@@ -98,7 +98,7 @@ const getMainApi=async(html)=>{
     try{    
         const content = html.querySelector("#myframe").attributes.src.split("#")[1]
         MaxEpisodes = html.querySelector("#selectEpisode").getElementsByTagName("option").length
-        const item = await axios.get(url+content)
+        const item = await axios.get(BASE_URL+content)
         const semi = item.data.fembed.link.split("/")
         return semi
     }
@@ -110,7 +110,7 @@ const getMainApi=async(html)=>{
 const getVideoApi= async (semi)=>{
     console.log("99%")
     try{    
-        const video = await axios.post(video_url+semi[semi.length-1],{r:"",d:"animepl.xyz"})
+        const video = await axios.post(VIDEO_URL+semi[semi.length-1],{r:"",d:"animepl.xyz"})
         const mp4 = video.data.data[video.data.data.length-1]
         return {video:mp4.file,quality:mp4.label}
     }
