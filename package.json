@@ -1,10 +1,11 @@
 {
-  "name": "test",
+  "name": "cartoon-cli",
   "version": "1.0.0",
   "description": "Cartoon CLI for getting json info of episodes and downloading cartoons",
   "main": "bin/Cartoons.js",
   "keywords": [
-    "cli"
+    "cli",
+    "cartoon"
   ],
   "bin": {
     "cartoon": "./bin/Cartoons.js"
@@ -12,8 +13,16 @@
   "scripts": {
     "start": "node ./bin/Cartoons.js"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Saba Manjavidze",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SabaManjavidze/cartoon-cli"
+  },
+  "bugs": {
+    "url": "https://github.com/SabaManjavidze/cartoon-cli/issues"
+  },
+  "homepage": "https://github.com/SabaManjavidze/cartoon-cli#readme",
   "dependencies": {
     "axios": "^0.24.0",
     "colors": "^1.4.0",
