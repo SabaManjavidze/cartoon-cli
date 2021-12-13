@@ -2,7 +2,6 @@
 CLI for watching and browsing Cartoons
 
 
-| Downlaod |
-| ----------- |
-| shut up im working on it baka |
+# H1 Downlaod 
+`code` shut up im working on it baka 
   
