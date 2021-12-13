@@ -1,6 +1,6 @@
 {
   "name": "cartoon-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Cartoon CLI for getting json info of episodes and downloading cartoons",
   "main": "./bin/Cartoons.js",
   "keywords": [
