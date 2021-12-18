@@ -37,9 +37,11 @@ cartoon samurai jack --specify
 
 ```
 
-#### Example
+## Example
 
 ```
+cartoon samurai jack
+
 Getting Results...
 
 [0]--Samurai Jack Season 1
@@ -49,7 +51,5 @@ Getting Results...
 [4]--Samurai Jack Season 5
 Choose Index : 0
 Starting To Fetch Every Episode...
-
-Enter File Or Folder Path (file must be .json) : C:/Documents/Cartoons/samuraiJack.json
 
 ```
