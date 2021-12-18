@@ -5,11 +5,12 @@ const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
+const Settings = require("../settings.json")
 const fs = require("fs")
 const {getVideoApi,getSlug,getPage,getMainApi}=require("./services")
 
 
-const yargs = require('yargs')
+const yargs = require('yargs');
 const argv = yargs.argv
 const GivenTitle = argv._
 
@@ -26,6 +27,12 @@ if(GivenTitle.length==0)
         })
     }
     else{
+        console.log(argv)
+
+        if (argv.path!=null) {
+           Settings.path=argv.path
+           fs.writeFileSync("../settings.json",JSON.stringify(Settings,null,2),{flag:"w+"},(err)=>{err&&console.log(err);return})
+        }
         getWithYargs(argv.specify)
     }
 }
@@ -49,8 +56,7 @@ const EPISODE_URL="https://kisscartoon.city/movie/"
 
 var MaxEpisodes = 1;
 var Slug = ""
-var Path = "D:/My Documents/Cartoons/cartoon.json"
-
+var Path = Settings.path
 let ep = 1
 const arr = []
 
@@ -85,7 +91,7 @@ const fetchAllTheEpisodes=async ()=>
         ep<=MaxEpisodes&&console.log(`Fetching Episode ${ep}...`)
         const episode_obj= await fetchEpisode()
         arr.push(episode_obj)
-        console.log(`Episode ${ep} Fetched \n`)
+        console.log('\x1b[32m%s\x1b[0m',`Episode ${ep} Fetched \n`)
         ep++
         if(ep>MaxEpisodes){
             const path_arr = Path.split("/")
