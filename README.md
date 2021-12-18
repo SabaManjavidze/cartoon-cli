@@ -50,6 +50,6 @@ Getting Results...
 Choose Index : 0
 Starting To Fetch Every Episode...
 
-Enter File Or Folder Path (file must be .json) :
+Enter File Or Folder Path (file must be .json) : C:/Documents/Cartoons/samuraiJack.json
 
 ```
