@@ -5,7 +5,9 @@ const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
-const Settings = require("../settings.json")
+var nconf = require('nconf');
+nconf.use('file',{file:"../settings.json"})
+nconf.load()
 const fs = require("fs")
 const {getVideoApi,getSlug,getPage,getMainApi}=require("./services")
 
@@ -17,8 +19,13 @@ const GivenTitle = argv._
 
 const cli_init =async ()=>{
     if (argv.path!=null) {
-       Settings.path=argv.path
-       fs.writeFileSync("../settings.json",JSON.stringify(Settings,null,2),{flag:"w+"},(err)=>{err&&console.log(err);return})
+       nconf.set("path",argv.path)
+       nconf.save((err)=>{
+        if (err) {
+            console.error(err.message);
+            return;
+          }
+       })
     }
     if(GivenTitle.length==0)
         {
@@ -27,7 +34,7 @@ const cli_init =async ()=>{
                 const formated = show_name.replace(" ","+").toLowerCase()
                 const arr = await getSlug(SHOW_URL,formated)
                 displayOptions(arr)
-            
+
             })
         }
         else{
@@ -54,7 +61,7 @@ const EPISODE_URL="https://kisscartoon.city/movie/"
 
 var MaxEpisodes = 1;
 var Slug = ""
-var Path = Settings.path
+var Path = nconf.get("path")
 let ep = 1
 const arr = []
 

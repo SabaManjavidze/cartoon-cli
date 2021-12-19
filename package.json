@@ -26,6 +26,7 @@
   "dependencies": {
     "axios": "^0.24.0",
     "fs": "0.0.1-security",
+    "nconf": "^0.11.3",
     "node-html-parser": "^5.1.0",
     "readline": "^1.3.0",
     "yargs": "^17.3.0"
