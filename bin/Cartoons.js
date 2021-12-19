@@ -16,26 +16,24 @@ const GivenTitle = argv._
 
 
 const cli_init =async ()=>{
-if(GivenTitle.length==0)
-    {
-        rl.question("Enter Cartoon Name : ",async (show_name)=>
+    if (argv.path!=null) {
+       Settings.path=argv.path
+       fs.writeFileSync("../settings.json",JSON.stringify(Settings,null,2),{flag:"w+"},(err)=>{err&&console.log(err);return})
+    }
+    if(GivenTitle.length==0)
         {
-            const formated = show_name.replace(" ","+").toLowerCase()
-            const arr = await getSlug(SHOW_URL,formated)
-            displayOptions(arr)
-
-        })
-    }
-    else{
-        console.log(argv)
-
-        if (argv.path!=null) {
-           Settings.path=argv.path
-           fs.writeFileSync("../settings.json",JSON.stringify(Settings,null,2),{flag:"w+"},(err)=>{err&&console.log(err);return})
+            rl.question("Enter Cartoon Name : ",async (show_name)=>
+            {
+                const formated = show_name.replace(" ","+").toLowerCase()
+                const arr = await getSlug(SHOW_URL,formated)
+                displayOptions(arr)
+            
+            })
         }
-        getWithYargs(argv.specify)
+        else{
+            getWithYargs(argv.specify)
+        }
     }
-}
 
 const getWithYargs = async (specify)=>{
     let show_name=""
