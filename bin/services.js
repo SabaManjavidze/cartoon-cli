@@ -71,6 +71,7 @@ const getPage=async(EPISODE_URL,Slug,ep)=>{
  const getMainApi=async(max_episodes,html,BASE_URL)=>{
     console.log("66%")
     try{    
+        console.log(html)
         const content = html.querySelector("#myframe").attributes.src.split("#")[1]
         max_episodes = html.querySelector("#selectEpisode").getElementsByTagName("option").length
         const item = await axios.get(BASE_URL+content)
