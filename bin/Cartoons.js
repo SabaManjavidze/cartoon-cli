@@ -9,6 +9,7 @@ var nconf = require('nconf');
 nconf.use('file',{file:"../settings.json"})
 nconf.load()
 const fs = require("fs")
+const axios = require("axios").default
 const {getVideoApi,getSlug,getPage,getMainApi}=require("./services")
 
 
@@ -31,7 +32,7 @@ const cli_init =async ()=>{
        console.log(`default path changed from \x1b[33m${prevPath}\x1b[0m to \x1b[32m${argv.path}\x1b[0m`)
     }
     if(argv.download!=null){
-        nconf.set("download",argv.download)
+        nconf.set("download",argv.download.toLowerCase())
         nconf.save((err)=>{
             if (err) {
                 console.error(err.message);
@@ -55,7 +56,7 @@ const cli_init =async ()=>{
             })
         }
         else{
-            getWithYargs(argv.specify)
+            getWithYargs(argv.specify,argv.download)
         }
     }
 
@@ -65,113 +66,66 @@ const getWithYargs = async (specify)=>{
     GivenTitle.map(child=>{
         show_name+=(child+"+")
     })
-    const arr = await getSlug(SHOW_URL,show_name.toLowerCase())
+    const arr = await getSlug(show_name.toLowerCase())
     displayOptions(arr,specify)
 }
 
 
-const BASE_URL="https://app.opencdn.co/cartoon?id="
-const VIDEO_URL = "https://animepl.xyz/api/source/"
 const SHOW_URL="https://kisscartoon.city/?s="
-const EPISODE_URL="https://kisscartoon.city/movie/"
 
 
 var MaxEpisodes = 1;
 var Slug = ""
 var Path = nconf.get("path")
-var Download = nconf.get("download")
-let ep = 1
 const arr = []
 
-const fetchEpisode=async ()=>{
-    const html = await getPage(EPISODE_URL,Slug,ep)
-    const {max,semi} = await getMainApi(MaxEpisodes,html,BASE_URL)
-    MaxEpisodes=max
-    const {video,quality} = await getVideoApi(VIDEO_URL,semi)
-    return {episode:MaxEpisodes-ep+1,url:video,quality:quality}
-}
 
 const displayOptions = (arr,specify)=>{
-    rl.question("Choose Index : ",(index)=>{
+    rl.question("Choose Index : ",async (index)=>{
         
         const splat = arr[index].url.split("/")
         ChosenTitle = arr[index].title
         Slug = splat[splat.length-2]
-
-        console.log("Starting To Fetch Every Episode... \n")
+        const Download = nconf.get("download")=="true"
+        MaxEpisodes = await getMaxEp(1)
         if(specify){
             rl.question("Enter file path (file must be .json) : ",(path)=>{
                 Path=path
-                Download
-                ?
-                downloadEpisodes()
-                :
-                fetchAllTheEpisodes()
             })
-        }else{
-            Download
-            ?
-            downloadEpisodes()
-            :
+        }
+        if(Download)
+        {
+            rl.question("Enter Episode Range (ex. 4,6) : ",(range)=>{
+                if(range!=null||range!=""){
+                    const str_arr = range.replace(" ","").split(",")
+                    const ep_range= [parseInt(str_arr[0]),parseInt(str_arr[1])]
+                    downloadEpisodes(ep_range)
+                }else{
+                    downloadEpisodes(1,MaxEpisodes)
+                }
+                console.log("Starting To Fetch Every Episode... \n")
+            })
+        }
+        else{
             fetchAllTheEpisodes()
-        }   
+        }
     })
 }
-const fetchAllTheEpisodes=async ()=>
+const fetchAllTheEpisodes=async (ep)=>
 {
     setTimeout(async()=>
     {
         ep<=MaxEpisodes&&console.log(`Fetching Episode ${ep}...`)
-        const episode_obj= await fetchEpisode()
+        const episode_obj= await fetchEpisode(MaxEpisodes-ep+1)
         arr.push(episode_obj)
         console.log('\x1b[32m%s\x1b[0m',`Episode ${ep} Fetched \n`)
         ep++
         if(ep>MaxEpisodes){
             const path_arr = Path.split("/")
             const path_dir=Path.replace(path_arr[path_arr.length-1],"")
-
+            
             if (!fs.existsSync(path_dir)) {
-               fs.mkdirSync(path_dir,{recursive:true}) 
-            }
-
-            fs.writeFileSync(Path,JSON.stringify(arr,null,2),{flag:"w+"},(err)=>{err&&console.log(err);return})
-            console.log("Done!")
-            return;
-        }
-        if(ep<=MaxEpisodes)
-        {
-            fetchAllTheEpisodes()
-        } 
-    }
-    ,2500
-    )
-}
-
-const downloadEpisode=async (url)=>{
-    const res = await axios({
-      method:"GET",
-      url:url,
-      responseType:"stream"
-    })
-    res.data.pipe(fs.createWriteStream(`${ChosenTitle}---EP${ep<10?"0"+ep:" "+ep}.mp4`))
-  }
-
-const downloadEpisodes=async (Ep_range)=>
-{
-    ep=Ep_range[0]
-    setTimeout(async()=>
-    {
-        ep<=Ep_range[1]&&console.log(`Fetching Episode ${ep}...`)
-        const {url}= await fetchEpisode()
-        const downloaded = await downloadEpisode(url)
-        console.log('\x1b[32m%s\x1b[0m',`Episode ${ep} Fetched \n`)
-        ep++
-        if(ep>Ep_range[1]){
-            const path_arr = Path.split("/")
-            const path_dir=Path.replace(path_arr[path_arr.length-1],"")
-
-            if (!fs.existsSync(path_dir)) {
-               fs.mkdirSync(path_dir,{recursive:true}) 
+                fs.mkdirSync(path_dir,{recursive:true}) 
             }
             
             fs.writeFileSync(Path,JSON.stringify(arr,null,2),{flag:"w+"},(err)=>{err&&console.log(err);return})
@@ -180,7 +134,59 @@ const downloadEpisodes=async (Ep_range)=>
         }
         if(ep<=MaxEpisodes)
         {
-            downloadEpisodes([Ep_range[0]++,Ep_range[1]])
+            fetchAllTheEpisodes(ep+1)
+        } 
+    }
+    ,2500
+    )
+}
+
+const downloadEpisode=async (url,ep)=>{
+    const res = await axios({
+        method:"GET",
+        url:url,
+        responseType:"stream"
+    })
+    if (!fs.existsSync(Path)) {
+        fs.mkdirSync(Path,{recursive:true}) 
+    }
+    
+    res.data.pipe(fs.createWriteStream(`${Path}/${ChosenTitle}_EP${ep<10?" 0"+ep:" "+ep}.mp4`))
+}
+const getMaxEp = async (ep)=>{
+    const html = await getPage(Slug,ep)
+    const {max} = await getMainApi(html)
+    console.log(max)
+    return max
+}
+const fetchEpisode=async (ep)=>{
+    const html = await getPage(Slug,ep)
+    const {max,semi} = await getMainApi(html)
+    MaxEpisodes=max
+    const {video,quality} = await getVideoApi(semi)
+    return {episode:ep,url:video,quality:quality}
+}
+
+const downloadEpisodes=async (Ep_range)=>
+{
+    const ep=Ep_range[0]
+    const max = Ep_range[1]
+    setTimeout(async()=>
+    {
+        ep<=max&&console.log(`Fetching Episode ${ep}...`)
+        const {url}= await fetchEpisode(MaxEpisodes-ep+1)
+        downloadEpisode(url,ep)
+        console.log('\x1b[32m%s\x1b[0m',`Episode ${ep} Fetched \n`)
+        if(ep===max){
+
+            console.log("Done!")
+            return;
+        }
+        if(ep<=Ep_range[1])
+        {
+            const next_ep = Ep_range[0]+1
+            const ep_range = [next_ep,max]
+            downloadEpisodes(ep_range)
         } 
     }
     ,2500
