@@ -51,7 +51,6 @@ const getOptions = async (url) =>{
 }
 
 const getVideoApi= async (semi)=>{
-    console.log("99%")
     try{    
         const video = await axios.post(VIDEO_URL+semi[semi.length-1],{r:"",d:"animepl.xyz"})
         const mp4 = video.data.data[video.data.data.length-1]
@@ -63,7 +62,6 @@ const getVideoApi= async (semi)=>{
 }
 
 const getPage=async(Slug,ep)=>{
-    console.log("33%")
     try{    
         const res = await axios.get(`${EPISODE_URL}${Slug}-episode-${ep}/`)
         const html = HTMLParser.parse(res.data)
@@ -82,7 +80,6 @@ const getPage=async(Slug,ep)=>{
 // }
 
  const getMainApi=async(html)=>{
-    console.log("66%")
     try{    
         const content = html.querySelector("#myframe").attributes.src.split("#")[1]
         const max_episodes = html.querySelector("#selectEpisode").getElementsByTagName("option").length
