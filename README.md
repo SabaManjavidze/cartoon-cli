@@ -16,10 +16,10 @@ npm i cartoon-cli -g
 
 ```
  # downloads episode mp4
-cartoon --download=true
+cartoon --download or --d
 
  # saves episode info in json file
-cartoon --download=false
+cartoon --no-download or --no-d
 
 ```
 
@@ -27,10 +27,10 @@ cartoon --download=false
 
 ```
  # Changes default path
-cartoon --path=D:/Desktop/Cartoons/rick_and_morty.json
+cartoon --path=D:/Desktop/Cartoons/rick_and_morty
 
  # One-time change
-cartoon --specify=C:/Documents/Cartoons/ben_10.json
+cartoon --specify=C:/Documents/Cartoons/ben_10
 
 # or specify after:
 cartoon samurai jack --specify
@@ -46,7 +46,7 @@ Getting Results...
 Choose Index : 0
 
 
-Enter file path (file must be .json) :
+Enter file path :
 
 ```
 
