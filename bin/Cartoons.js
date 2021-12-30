@@ -1,10 +1,6 @@
 #! /usr/bin/env node
 
-const readline = require("readline");
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
+const readline = require('readline-sync');
 var nconf = require('nconf');
 nconf.use('file',{file:"../settings.json"})
 nconf.load()
@@ -12,8 +8,21 @@ const fs = require("fs")
 const axios = require("axios").default
 const {getVideoApi,getSlug,getPage,getMainApi}=require("./services")
 
-const request = require('request')
-const yargs = require('yargs');
+const yargs = require('yargs').options({
+    "autofolder":{
+        alias: 'af',
+        description:'creates folder with title of the show as its name in dir specified in settings.json',
+        type:'boolean'
+    },
+    "download":{
+        alias:"d",
+        description:"if true downloads mp4 of the episode if false puts url of the mp4 in json file",
+        type:"boolean"
+    },
+    "specify":{
+        type:"string"
+    }
+})
 const argv = yargs.argv
 const GivenTitle = argv._
 const _cliProgress = require('cli-progress');
@@ -21,9 +30,31 @@ var ChosenTitle = ""
 var MaxEpisodes = 1;
 var Slug = ""
 var Path = nconf.get("path")
+var AutoFolder = nconf.get("autoFolder")
 const arr = []
 
-
+const invalid_answer = ()=>{
+        const ans = readline.question("invalid answer, try again. [y,n] : ")
+        if(ans!="y"&&ans!="n"){
+            invalid_answer()
+        }
+        return ans
+}
+const dealWithNoValue = (val)=>{
+    if(val!=null&&val!=""){
+        return val
+    }else{
+        no_value()
+    }
+}
+const no_value = async () =>{
+    const val = readline.question("--specify needs a value (ex. D:/desktop/cartoons) : ")
+        if(val==""||val==null){
+            const new_val = dealWithNoValue(val)
+            return new_val
+        }
+        return val
+}
 const cli_init =async ()=>{
     if (argv.path!=null) {
        const prevPath = nconf.get("path") 
@@ -40,35 +71,74 @@ const cli_init =async ()=>{
     if (!fs.existsSync(Path)) {
         fs.mkdirSync(Path,{recursive:true}) 
     }
+    if(argv.autofolder!=null){
+       nconf.set("autoFolder",argv.autofolder)
+       AutoFolder = argv.autofolder
+       nconf.save((err)=>{
+        if (err) {
+            console.error(err.message);
+            return;
+          }
+        })
+    }
+
+
+
+    if(argv.specify!=null)
+    {
+        let specify = argv.specify
+        if(specify===""){
+            specify = await no_value()
+        }
+
+        if(!fs.existsSync(specify))
+        {
+            const ans = readline.question(`directory ${specify} doesn't exists, do you want to create it?[y,n] : `)
+            let answer = ans
+            if(ans!="y"&&ans!="n"){
+                answer = invalid_answer()
+            }
+            if(answer=="y"){
+                fs.mkdirSync(specify,{recursive:true})
+            }else{
+                console.log("Using default directory ",Path)
+                startDisplayOptions()
+            }
+            console.log("made directory ",specify)
+        }
+        Path = specify
+    }
+
+
     if(argv.download!=null){
-        nconf.set("download",argv.download.toLowerCase())
+        nconf.set("download",argv.download)
         nconf.save((err)=>{
             if (err) {
                 console.error(err.message);
                 return;
               }
         })
-        argv.download.toString()=="true"
+        argv.download
         ?
         console.log("\x1b[35m episodes will be downloaded \x1b[0m")
         :
         console.log("\x1b[35m info of episodes will be written in json file \x1b[0m")
     }
+    startDisplayOptions()
+}
+const startDisplayOptions = async ()=>{
     if(GivenTitle.length==0)
-        {
-            rl.question("Enter Cartoon Name : ",async (show_name)=>
-            {
-                const formated = show_name.replace(" ","+").toLowerCase()
-                const arr = await getSlug(formated)
-                displayOptions(arr)
-
-            })
-        }
-        else{
-            getWithYargs(argv.specify,argv.download)
-        }
+    {
+            const show_name= readline.question("Enter Cartoon Name : ")
+            const formated = show_name.replace(" ","+").toLowerCase()
+            const arr = await getSlug(formated)
+            displayOptions(arr)
     }
-
+    else
+    {
+        getWithYargs()
+    }
+}
 const getWithYargs = async (specify)=>{
     let show_name=""
 
@@ -81,37 +151,37 @@ const getWithYargs = async (specify)=>{
 
 
 
-const displayOptions = (arr,specify)=>{
-    rl.question("Choose Index : ",async (index)=>{
+const displayOptions = async (arr,specify)=>{
+        const index = readline.question("Choose Index : ")
         
         const splat = arr[index].url.split("/")
         ChosenTitle = arr[index].title
         Slug = splat[splat.length-2]
-        const Download = nconf.get("download")=="true"
-        MaxEpisodes = await getMaxEp(1)
+        const Download = nconf.get("download")
+        MaxEpisodes = await getMaxEp()
         if(specify){
-            rl.question("Enter file path (file must be .json) : ",(path)=>{
-                Path=path
-            })
+            const path=readline.question("Enter file path (file must be .json) : ")
+            Path=path
         }
         if(Download)
         {
-            rl.question("Enter Episode Range (ex. 4,6) : ",(range)=>{
-                if(range!=null||range!=""){
-                    const str_arr = range.replace(" ","").split(",")
-                    const ep_range= [parseInt(str_arr[0]),parseInt(str_arr[1])]
-                    console.log("Starting To Fetch Every Episode... \n")
-                    downloadEpisodes(ep_range)
-                }else{
-                    console.log("Starting To Fetch Every Episode... \n")
-                    downloadEpisodes(1,MaxEpisodes)
-                }
-            })
+            const range = readline.question("Enter Episode Range (ex. 4,6) : ")
+            if(range!=null&&range!=="")
+            {
+                const str_arr = range.replace(" ","").split(",")
+                const ep_range= [parseInt(str_arr[0]),parseInt(str_arr[1])]
+                console.log("Starting To Fetch Every Episode... \n")
+                downloadEpisodes(ep_range)
+            }
+            else
+            {
+                console.log("Starting To Fetch Every Episode... \n")
+                downloadEpisodes([1,MaxEpisodes])
+            }
         }
         else{
             fetchAllTheEpisodes()
         }
-    })
 }
 const fetchAllTheEpisodes=async (ep)=>
 {
@@ -144,8 +214,8 @@ const fetchAllTheEpisodes=async (ep)=>
 }
 
 
-const getMaxEp = async (ep)=>{
-    const html = await getPage(Slug,ep)
+const getMaxEp = async ()=>{
+    const html = await getPage(Slug,1)
     const {max} = await getMainApi(html)
     console.log(`Episode Range --- [1-${max}]`)
     return max
