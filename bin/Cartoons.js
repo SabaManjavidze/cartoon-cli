@@ -9,11 +9,6 @@ const axios = require("axios").default
 const {getVideoApi,getSlug,getPage,getMainApi}=require("./services")
 
 const yargs = require('yargs').options({
-    "autofolder":{
-        alias: 'af',
-        description:'creates folder with title of the show as its name in dir specified in settings.json',
-        type:'boolean'
-    },
     "download":{
         alias:"d",
         description:"if true downloads mp4 of the episode if false puts url of the mp4 in json file",
@@ -30,8 +25,6 @@ var ChosenTitle = ""
 var MaxEpisodes = 1;
 var Slug = ""
 var Path = nconf.get("path")
-var AutoFolder = nconf.get("autoFolder")
-const arr = []
 
 const invalid_answer = ()=>{
         const ans = readline.question("invalid answer, try again. [y,n] : ")
@@ -163,50 +156,39 @@ const displayOptions = async (arr,specify)=>{
             const path=readline.question("Enter file path (file must be .json) : ")
             Path=path
         }
-        if(Download)
+        const range = readline.question("Enter Episode Range (ex. 4,6) : ")
+        if(range!=null&&range!=="")
         {
-            const range = readline.question("Enter Episode Range (ex. 4,6) : ")
-            if(range!=null&&range!=="")
-            {
-                const str_arr = range.replace(" ","").split(",")
-                const ep_range= [parseInt(str_arr[0]),parseInt(str_arr[1])]
-                console.log("Starting To Fetch Every Episode... \n")
-                downloadEpisodes(ep_range)
-            }
-            else
-            {
-                console.log("Starting To Fetch Every Episode... \n")
-                downloadEpisodes([1,MaxEpisodes])
-            }
+            const str_arr = range.replace(" ","").split(",")
+            const ep_range= [parseInt(str_arr[0]),parseInt(str_arr[1])]
+            console.log("Starting To Fetch Every Episode... \n")
+            Download?downloadEpisodes(ep_range):fetchAllTheEpisodes(ep_range)
         }
-        else{
-            fetchAllTheEpisodes()
+        else
+        {
+            console.log("Starting To Fetch Every Episode... \n")
+            Download?downloadEpisodes([1,MaxEpisodes]):fetchAllTheEpisodes([1,MaxEpisodes])
         }
 }
-const fetchAllTheEpisodes=async (ep)=>
+const arr = []
+const fetchAllTheEpisodes=async (Ep_range)=>
 {
+    const ep=Ep_range[0]
+    const max = Ep_range[1]
     setTimeout(async()=>
     {
-        ep<=MaxEpisodes&&console.log(`Fetching Episode ${ep}...`)
+        ep<=max&&console.log(`Fetching Episode ${ep}...`)
         const episode_obj= await fetchEpisode(MaxEpisodes-ep+1)
         arr.push(episode_obj)
         console.log('\x1b[32m%s\x1b[0m',`Episode ${ep} Fetched \n`)
-        ep++
-        if(ep>MaxEpisodes){
-            const path_arr = Path.split("/")
-            const path_dir=Path.replace(path_arr[path_arr.length-1],"")
-            
-            if (!fs.existsSync(path_dir)) {
-                fs.mkdirSync(path_dir,{recursive:true}) 
-            }
-            
-            fs.writeFileSync(Path,JSON.stringify(arr,null,2),{flag:"w+"},(err)=>{err&&console.log(err);return})
+        if(ep===max){
+            fs.writeFileSync(Path+`/${ChosenTitle.replace(" ","-")}.json`,JSON.stringify(arr,null,2),{flag:"w+"},(err)=>{err&&console.log(err);return})
             console.log("Done!")
             return;
         }
-        if(ep<=MaxEpisodes)
+        if(ep<=max)
         {
-            fetchAllTheEpisodes(ep+1)
+            fetchAllTheEpisodes([ep+1,max])
         } 
     }
     ,2500
@@ -217,15 +199,14 @@ const fetchAllTheEpisodes=async (ep)=>
 const getMaxEp = async ()=>{
     const html = await getPage(Slug,1)
     const {max} = await getMainApi(html)
-    console.log(`Episode Range --- [1-${max}]`)
+    console.log(`Episode Range [1-${max}]`)
     return max
 }
 const fetchEpisode=async (ep)=>{
     const html = await getPage(Slug,ep)
-    const {max,semi} = await getMainApi(html)
-    MaxEpisodes=max
+    const {semi} = await getMainApi(html)
     const {video,quality} = await getVideoApi(semi)
-    return {episode:ep,url:video,quality:quality}
+    return {episode:MaxEpisodes-ep+1,url:video,quality:quality}
 }
 const downloadEpisodes=async (Ep_range)=>
 {
@@ -257,7 +238,7 @@ const downloadEpisodes=async (Ep_range)=>
             console.log("Done!")
             return;
         }
-        if(ep<=Ep_range[1])
+        if(ep<=max)
         {
             const next_ep = Ep_range[0]+1
             const ep_range = [next_ep,max]
