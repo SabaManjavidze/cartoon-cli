@@ -175,6 +175,9 @@ const fetchAllTheEpisodes=async (Ep_range)=>
         arr.push(episode_obj)
         console.log('\x1b[32m%s\x1b[0m',`Episode ${ep} Fetched \n`)
         if(ep===max){
+            if (!fs.existsSync(`${Path}/${ChosenTitle}`)) {
+                fs.mkdir(`${Path}/${ChosenTitle}`)
+            }
             fs.writeFileSync(`${Path}/${ChosenTitle}/${ChosenTitle.replace(" ","-")}.json`,JSON.stringify(arr,null,2),{flag:"w+"},(err)=>{err&&console.log(err);return})
             console.log("Done!")
             return;
@@ -208,6 +211,9 @@ const downloadEpisodes=async (Ep_range)=>
     ep<=max&&console.log(`Fetching Episode ${ep}...`)
     
     const {url}= await fetchEpisode(MaxEpisodes-ep+1)
+    if (!fs.existsSync(`${Path}/${ChosenTitle}`)) {
+        fs.mkdir(`${Path}/${ChosenTitle}`)
+    }
     const file = fs.createWriteStream(`${Path}/${ChosenTitle}/${ChosenTitle}_EP${ep<10?" 0"+ep:" "+ep}.mp4`)
     let receivedBytes = 0
 
