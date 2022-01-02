@@ -2,8 +2,8 @@
 
 const readline = require('readline-sync');
 var nconf = require('nconf');
-nconf.use('file',{file:"../settings.json"})
-nconf.load()
+// nconf.use('file',{file:"C:/Users/Saba/AppData/Roaming/npm/node_modules/cartoon-cli/settings.json"})
+nconf.env().argv().file({file:"C:/Users/Saba/AppData/Roaming/npm/node_modules/cartoon-cli/settings.json"})
 const fs = require("fs")
 const axios = require("axios").default
 const {getVideoApi,getSlug,getPage,getMainApi}=require("./services")
@@ -53,27 +53,18 @@ const cli_init =async ()=>{
        const prevPath = nconf.get("path") 
        nconf.set("path",argv.path)
        Path = argv.path
-       nconf.save((err)=>{
-        if (err) {
-            console.error(err.message);
-            return;
-          }
-       })
        console.log(`default path changed from \x1b[33m${prevPath}\x1b[0m to \x1b[32m${argv.path}\x1b[0m`)
-    }
-    if (!fs.existsSync(Path)) {
-        fs.mkdirSync(Path,{recursive:true}) 
-    }
-    if(argv.autofolder!=null){
-       nconf.set("autoFolder",argv.autofolder)
-       AutoFolder = argv.autofolder
-       nconf.save((err)=>{
-        if (err) {
-            console.error(err.message);
-            return;
-          }
+       if (!fs.existsSync(Path)) {
+           fs.mkdirSync(Path,{recursive:true}) 
+        }
+        nconf.save((err)=>{
+         if (err) {
+             console.error(err.message);
+             return;
+           }
         })
-    }
+        if (argv._.length==0) return
+}
 
 
 
@@ -116,6 +107,8 @@ const cli_init =async ()=>{
         console.log("\x1b[35m episodes will be downloaded \x1b[0m")
         :
         console.log("\x1b[35m info of episodes will be written in json file \x1b[0m")
+        if (argv._.length==0) return
+
     }
     startDisplayOptions()
 }
@@ -182,7 +175,7 @@ const fetchAllTheEpisodes=async (Ep_range)=>
         arr.push(episode_obj)
         console.log('\x1b[32m%s\x1b[0m',`Episode ${ep} Fetched \n`)
         if(ep===max){
-            fs.writeFileSync(Path+`/${ChosenTitle.replace(" ","-")}.json`,JSON.stringify(arr,null,2),{flag:"w+"},(err)=>{err&&console.log(err);return})
+            fs.writeFileSync(`${Path}/${ChosenTitle}/${ChosenTitle.replace(" ","-")}.json`,JSON.stringify(arr,null,2),{flag:"w+"},(err)=>{err&&console.log(err);return})
             console.log("Done!")
             return;
         }
@@ -215,7 +208,7 @@ const downloadEpisodes=async (Ep_range)=>
     ep<=max&&console.log(`Fetching Episode ${ep}...`)
     
     const {url}= await fetchEpisode(MaxEpisodes-ep+1)
-    const file = fs.createWriteStream(`${Path}/${ChosenTitle}_EP${ep<10?" 0"+ep:" "+ep}.mp4`)
+    const file = fs.createWriteStream(`${Path}/${ChosenTitle}/${ChosenTitle}_EP${ep<10?" 0"+ep:" "+ep}.mp4`)
     let receivedBytes = 0
 
     const progressBar = new _cliProgress.SingleBar({
