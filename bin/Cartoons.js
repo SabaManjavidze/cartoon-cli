@@ -138,7 +138,21 @@ const getWithYargs = async (specify)=>{
 
 const displayOptions = async (arr,specify)=>{
         const index = readline.question("Choose Index : ")
-        
+        if (!isNaN(index)==false||index==="") {
+            console.log("invalid value, try again")
+            displayOptions(arr,specify)
+            return
+        }
+        if (index>arr.length-1) {
+            console.log(`index ${index} is too high!`)
+            displayOptions(arr,specify)
+            return
+        }
+        if(index<0){
+            console.log(`index ${index} is too low!`)
+            displayOptions(arr,specify)
+            return
+        }
         const splat = arr[index].url.split("/")
         ChosenTitle = arr[index].title
         Slug = splat[splat.length-2]
