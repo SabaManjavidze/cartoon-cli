@@ -30,7 +30,7 @@ cartoon --no-download or --no-d
 # Changes default path
 
 ```
-cartoon --path=D:/Desktop/Cartoons/rick_and_morty
+cartoon --path=D:/Desktop/Cartoons
 ```
 
 # One-time change
@@ -49,7 +49,7 @@ cartoon samurai jack --specify
 ### output
 
 ```
---specify needs a value (ex. D:/desktop/cartoons) : C:/Documents/Cartoons/Samurai_jack
+--specify needs a value (ex. D:/desktop/cartoons) : C:/Documents/Cartoons/ben_10
 ```
 
 # Example
