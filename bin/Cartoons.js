@@ -3,7 +3,7 @@
 const readline = require('readline-sync');
 var nconf = require('nconf');
 // nconf.use('file',{file:"C:/Users/Saba/AppData/Roaming/npm/node_modules/cartoon-cli/settings.json"})
-nconf.env().argv().file({file:"C:/Users/Saba/AppData/Roaming/npm/node_modules/cartoon-cli/settings.json"})
+nconf.env().file({file:"C:/Users/Saba/AppData/Roaming/npm/node_modules/cartoon-cli/settings.json"})
 const fs = require("fs")
 const axios = require("axios").default
 const {getVideoApi,getSlug,getPage,getMainApi}=require("./services")
@@ -50,13 +50,12 @@ const no_value = async () =>{
 }
 const cli_init =async ()=>{
     if (argv.path!=null) {
-       const prevPath = nconf.get("path") 
-       nconf.set("path",argv.path)
-       Path = argv.path
-       console.log(`default path changed from \x1b[33m${prevPath}\x1b[0m to \x1b[32m${argv.path}\x1b[0m`)
-       if (!fs.existsSync(Path)) {
-           fs.mkdirSync(Path,{recursive:true}) 
+        console.log(`default path changed from \x1b[33m${Path}\x1b[0m to \x1b[32m${argv.path}\x1b[0m`)
+        if (!fs.existsSync(Path)) {
+            fs.mkdirSync(Path,{recursive:true}) 
         }
+        Path = argv.path
+        nconf.set("path",argv.path)
         nconf.save((err)=>{
          if (err) {
              console.error(err.message);
@@ -176,7 +175,7 @@ const fetchAllTheEpisodes=async (Ep_range)=>
         console.log('\x1b[32m%s\x1b[0m',`Episode ${ep} Fetched \n`)
         if(ep===max){
             if (!fs.existsSync(`${Path}/${ChosenTitle}`)) {
-                fs.mkdir(`${Path}/${ChosenTitle}`)
+                fs.mkdirSync(`${Path}/${ChosenTitle}`,{recursive:true})
             }
             fs.writeFileSync(`${Path}/${ChosenTitle}/${ChosenTitle.replace(" ","-")}.json`,JSON.stringify(arr,null,2),{flag:"w+"},(err)=>{err&&console.log(err);return})
             console.log("Done!")
@@ -212,7 +211,7 @@ const downloadEpisodes=async (Ep_range)=>
     
     const {url}= await fetchEpisode(MaxEpisodes-ep+1)
     if (!fs.existsSync(`${Path}/${ChosenTitle}`)) {
-        fs.mkdir(`${Path}/${ChosenTitle}`)
+        fs.mkdirSync(`${Path}/${ChosenTitle}`,{recursive:true})
     }
     const file = fs.createWriteStream(`${Path}/${ChosenTitle}/${ChosenTitle}_EP${ep<10?" 0"+ep:" "+ep}.mp4`)
     let receivedBytes = 0
