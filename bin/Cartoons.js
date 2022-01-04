@@ -2,8 +2,9 @@
 
 const readline = require('readline-sync');
 var nconf = require('nconf');
-// nconf.use('file',{file:"C:/Users/Saba/AppData/Roaming/npm/node_modules/cartoon-cli/settings.json"})
-nconf.env().file({file:"C:/Users/Saba/AppData/Roaming/npm/node_modules/cartoon-cli/settings.json"})
+const { pathToFileURL } = require('url');
+const this_dir = pathToFileURL("../").pathname
+nconf.env().file({file:`${this_dir.substring(1,this_dir.length)}/settings.json`})
 const fs = require("fs")
 const axios = require("axios").default
 const {getVideoApi,getSlug,getPage,getMainApi}=require("./services")
@@ -133,7 +134,6 @@ const getWithYargs = async (specify)=>{
     const arr = await getSlug(show_name.toLowerCase())
     displayOptions(arr,specify)
 }
-
 
 
 const displayOptions = async (arr,specify)=>{
