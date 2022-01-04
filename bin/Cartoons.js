@@ -2,10 +2,7 @@
 
 const readline = require('readline-sync');
 var nconf = require('nconf');
-const { pathToFileURL } = require('url');
-const this_dir = pathToFileURL("../").pathname
-nconf.env().file({file:`${this_dir.substring(1,this_dir.length)}settings.json`})
-console.log(nconf.get("download"))
+nconf.env().file({file:`${__dirname.replace("\\bin","\\settings.json")}`})
 const fs = require("fs")
 const axios = require("axios").default
 const {getVideoApi,getSlug,getPage,getMainApi}=require("./services")
